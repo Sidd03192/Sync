@@ -26,6 +26,7 @@ export function ComparisonSection({
 }: ComparisonSectionProps) {
   const [isPlaying, setIsPlaying] = useState(autoPlay)
   const [sensitivity, setSensitivity] = useState([50])
+  const [playbackSpeed, setPlaybackSpeed] = useState(1)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const referenceVideoRef = useRef<HTMLVideoElement>(null)
   const userVideoRef = useRef<HTMLVideoElement>(null)
@@ -92,6 +93,59 @@ export function ComparisonSection({
     }
   }, [])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      switch (e.key) {
+        case " ": // Space bar - play/pause
+          e.preventDefault()
+          togglePlayback()
+          break
+        case "ArrowLeft": // Left arrow - rewind 5 seconds
+          e.preventDefault()
+          if (referenceVideoRef.current && userVideoRef.current) {
+            const newTime = Math.max(0, referenceVideoRef.current.currentTime - 5)
+            referenceVideoRef.current.currentTime = newTime
+            userVideoRef.current.currentTime = newTime
+          }
+          break
+        case "ArrowRight": // Right arrow - forward 5 seconds
+          e.preventDefault()
+          if (referenceVideoRef.current && userVideoRef.current) {
+            const newTime = Math.min(duration, referenceVideoRef.current.currentTime + 5)
+            referenceVideoRef.current.currentTime = newTime
+            userVideoRef.current.currentTime = newTime
+          }
+          break
+        case "r": // R - restart
+          e.preventDefault()
+          resetPlayback()
+          break
+        case "f": // F - fullscreen
+          e.preventDefault()
+          toggleFullscreen()
+          break
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+          // Number keys 1-4 for speed control
+          e.preventDefault()
+          const speeds = [0.25, 0.5, 1, 2]
+          setPlaybackSpeed(speeds[parseInt(e.key) - 1])
+          break
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyPress)
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress)
+    }
+  }, [isPlaying, duration])
+
   // Initialize videos
   useEffect(() => {
     if (referenceVideoRef.current && referenceVideo) {
@@ -137,10 +191,14 @@ export function ComparisonSection({
     }
   }
 
-  // Synchronize video playback
+  // Synchronize video playback and speed
   useEffect(() => {
     const syncVideos = () => {
       if (referenceVideoRef.current && userVideoRef.current) {
+        // Set playback speed
+        referenceVideoRef.current.playbackRate = playbackSpeed
+        userVideoRef.current.playbackRate = playbackSpeed
+
         if (isPlaying) {
           Promise.all([referenceVideoRef.current.play(), userVideoRef.current.play()]).catch((err) =>
             console.error("Error playing videos:", err),
@@ -153,7 +211,7 @@ export function ComparisonSection({
     }
 
     syncVideos()
-  }, [isPlaying])
+  }, [isPlaying, playbackSpeed])
 
   const togglePlayback = () => {
     setIsPlaying(!isPlaying)
@@ -199,6 +257,9 @@ export function ComparisonSection({
       >
         <h1 className="text-3xl font-jakarta font-medium text-[#333333] mb-3">Compare Performances</h1>
         <p className="text-[#666666]">Watch both videos side by side to see how your performance compares</p>
+        <div className="mt-4 text-xs text-[#999999]">
+          <span className="font-medium">Keyboard Shortcuts:</span> Space (play/pause) • ← → (skip 5s) • R (restart) • F (fullscreen) • 1-4 (speed)
+        </div>
       </motion.div>
 
       <div ref={containerRef} className={isFullscreen ? "hidden" : ""}>
@@ -331,6 +392,25 @@ export function ComparisonSection({
             transition={{ duration: 0.5, delay: 0.5 }}
             className="w-full max-w-md bg-white p-6 rounded-2xl shadow-sm"
           >
+            <h3 className="text-sm font-medium text-[#333333] mb-4">Playback Speed</h3>
+            <div className="flex gap-2 mb-6">
+              {[0.25, 0.5, 0.75, 1, 1.5, 2].map((speed) => (
+                <button
+                  key={speed}
+                  onClick={() => setPlaybackSpeed(speed)}
+                  className={`
+                    px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                    ${
+                      playbackSpeed === speed
+                        ? "bg-[#7851c4] text-white"
+                        : "bg-[#f5f5f7] text-[#666666] hover:bg-[#e5e5e7]"
+                    }
+                  `}
+                >
+                  {speed}x
+                </button>
+              ))}
+            </div>
             <h3 className="text-sm font-medium text-[#333333] mb-4">AI Sensitivity</h3>
             <div className="flex justify-between mb-2 text-xs text-[#666666]">
               <span>Less Detail</span>

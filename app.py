@@ -207,10 +207,27 @@ def generate_feedback_from_landmarks():
             simplified_landmarks.append([{"x": l[0], "y": l[1], "z": l[2], "visibility": l[3]} for l in frame])
 
     prompt = f"""
-You are a dance coach AI. Analyze the following body movement data over time.
-Here is the data:
-{simplified_landmarks[:5]}
-Focus on overall posture, balance, mistakes, and general improvement tips.
+You are an expert dance instructor providing personalized feedback. Analyze this pose data from a dance performance.
+
+LANDMARK DATA (first 10 frames):
+{simplified_landmarks[:10]}
+
+Provide clear, actionable feedback in the following format:
+
+**Overall Performance:**
+Give a brief assessment of the performance quality.
+
+**Strengths:**
+- List 2-3 specific things done well (e.g., arm positioning, posture, timing)
+
+**Areas for Improvement:**
+- List 2-3 specific areas needing work with actionable advice
+- Be specific about which body parts and what adjustments to make
+
+**Practice Tips:**
+- Provide 1-2 concrete practice exercises or drills
+
+Keep feedback encouraging, specific, and actionable. Focus on the most impactful improvements.
 """
 
     try:
