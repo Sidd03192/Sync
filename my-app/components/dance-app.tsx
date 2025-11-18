@@ -19,7 +19,8 @@ export function DanceApp() {
 
   const [currentStep, setCurrentStep] = useState<AppStep>(stepParam || "upload")
   const [referenceVideo, setReferenceVideo] = useState<string | null>(null)
-  const [userVideo, setUserVideo] = useState<string | null>("/demo-dance.mp4") // Set the demo video as user performance
+  const [userVideo, setUserVideo] = useState<string | null>(null)
+  const [landmarksFilename, setLandmarksFilename] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(!!lessonId)
 
   // Handle URL parameters for lesson and step
@@ -29,15 +30,18 @@ export function DanceApp() {
       // In a real app, fetch the lesson data from an API
       // For now, simulate loading the reference video
       setTimeout(() => {
-        setReferenceVideo("/placeholder.svg?height=720&width=1280")
+        setReferenceVideo("/example.mp4")
         setCurrentStep(stepParam || "record")
         setIsLoading(false)
       }, 1000)
     }
   }, [lessonId, stepParam])
 
-  const handleReferenceUploaded = (videoUrl: string) => {
+  const handleReferenceUploaded = (videoUrl: string, landmarksFilename?: string) => {
     setReferenceVideo(videoUrl)
+    if (landmarksFilename) {
+      setLandmarksFilename(landmarksFilename)
+    }
     setCurrentStep("compare") // Skip the record step and go directly to compare
   }
 
@@ -52,7 +56,8 @@ export function DanceApp() {
 
   const handleReset = () => {
     setReferenceVideo(null)
-    setUserVideo("/demo-dance.mp4") // Reset to the demo video
+    setUserVideo(null)
+    setLandmarksFilename(null)
     setCurrentStep("upload")
   }
 
@@ -94,7 +99,7 @@ export function DanceApp() {
           />
         )}
 
-        {currentStep === "feedback" && <FeedbackSection onReset={handleReset} />}
+        {currentStep === "feedback" && <FeedbackSection onReset={handleReset} landmarksFilename={landmarksFilename} />}
       </main>
     </div>
   )

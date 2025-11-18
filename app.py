@@ -4,7 +4,7 @@ import pickle
 import cv2
 import numpy as np
 import mediapipe as mp
-import openai
+from openai import OpenAI
 from mediapipe.framework.formats import landmark_pb2
 from flask import Flask, request, jsonify, url_for, send_file, abort, Response
 from flask_cors import CORS
@@ -23,7 +23,7 @@ from hello import (
 app = Flask(__name__)
 CORS(app)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 UPLOAD_FOLDER = os.path.join(app.root_path, "uploads")
 PROCESSED_FOLDER = os.path.join(app.root_path, "static", "processed")
@@ -118,7 +118,7 @@ def generate_comparison_frames(video_path, landmarks_path):
 
         fv = cv2.flip(fv, 1)
         fv = resize_to_height(fv, 480)
-        raw = all_lm[idx]
+        raw = all_lm[idx] if idx < len(all_lm) else None
         ref_list = None
 
         if raw:
@@ -214,7 +214,7 @@ Focus on overall posture, balance, mistakes, and general improvement tips.
 """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a professional dance instructor."},
@@ -223,7 +223,7 @@ Focus on overall posture, balance, mistakes, and general improvement tips.
             temperature=0.5,
             max_tokens=400
         )
-        feedback = response['choices'][0]['message']['content']
+        feedback = response.choices[0].message.content
         return jsonify({"feedback": feedback})
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 
 interface UploadSectionProps {
-  onVideoUploaded: (videoUrl: string) => void
+  onVideoUploaded: (videoUrl: string, landmarksFilename?: string) => void
 }
 
 
@@ -16,6 +16,7 @@ export function UploadSection({ onVideoUploaded }: UploadSectionProps) {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [landmarksFilename, setLandmarksFilename] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -59,7 +60,7 @@ export function UploadSection({ onVideoUploaded }: UploadSectionProps) {
         body: formData,
       })
       if (!resp.ok) throw new Error("Upload failed " + resp.status)
-      const { video_url } = await resp.json()
+      const { video_url, landmarks_filename } = await resp.json()
 
       // Fetch the processed video as a Blob
       const mp4resp = await fetch(video_url)
@@ -71,6 +72,7 @@ export function UploadSection({ onVideoUploaded }: UploadSectionProps) {
 
       setUploadProgress(100)
       setPreviewUrl(blobUrl)
+      setLandmarksFilename(landmarks_filename)
     } catch (err: any) {
       console.error(err)
       setError("Failed: " + err.message)
@@ -80,11 +82,11 @@ export function UploadSection({ onVideoUploaded }: UploadSectionProps) {
   }
 
   const triggerFileInput = () => fileInputRef.current?.click()
-  const skipToNext = () => onVideoUploaded("/placeholder.svg")
+  const skipToNext = () => onVideoUploaded("/example.mp4")
 
   const continueToNextStep = () => {
     if (previewUrl) {
-      onVideoUploaded(previewUrl) // Call the callback only when the user clicks "Continue"
+      onVideoUploaded(previewUrl, landmarksFilename || undefined) // Call the callback with landmarks
     }
   }
 
@@ -203,7 +205,7 @@ export function UploadSection({ onVideoUploaded }: UploadSectionProps) {
                 className="bg-[#b8a2db] hover:bg-[#a28bc9] px-8 py-3 rounded-full text-white shadow-sm mt-4"
               >
                 <ArrowRight className="mr-2 h-4 w-4" />
-                Continue to Recording
+                Continue to Comparison
               </Button>
             </div>
           ) : null}

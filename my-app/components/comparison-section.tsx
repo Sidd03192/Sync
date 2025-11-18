@@ -359,21 +359,6 @@ export function ComparisonSection({
             </Button>
           </motion.div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-4"
-        >
-          <Button
-            onClick={handleGetFeedback}
-            className="bg-[#7851c4] hover:bg-[#6a46b0] px-10 py-3 rounded-full text-white shadow-sm flex items-center"
-          >
-            Continue to Feedback
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </motion.div>
       </div>
     </div>
   )
